@@ -11,7 +11,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
     {
 
         private readonly string cadenaConexion =
-           "Host=localhost;Port=5432;Database=PAYLESS BD;Username=postgres;Password=LeonelF_241207";
+           "Host=localhost;Port=5432;Database=Payless individual;Username=postgres;Password=navarretejunior89";
 
         private NpgsqlConnection conexion;
 
@@ -60,7 +60,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
 
         public string ObtenerBaseDatos()
         {
-            return "PAYLESS BD";
+            return "Payless individual";
         }
 
         public string ObtenerUsuario()
@@ -70,7 +70,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
 
         public string ObtenerPassword()
         {
-            return "LeonelF_241207";
+            return "navarretejunior89";
         }
 
 
