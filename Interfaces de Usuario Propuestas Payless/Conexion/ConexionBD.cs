@@ -11,7 +11,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
     {
 
         private readonly string cadenaConexion =
-           "Host=localhost;Port=5432;Database=Payless individual;Username=postgres;Password=navarretejunior89";
+           "Host=localhost;Port=5432;Database=Payless individual;Username=postgres;Password=navarretejunior98";
 
         private NpgsqlConnection conexion;
 
