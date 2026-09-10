@@ -155,7 +155,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
 
         private void btnGuardar_Click(object sender, EventArgs e)
         {
-            //Validar producto
+            // Validar producto
             if (idProductoSeleccionado <= 0)
             {
                 MessageBox.Show(
@@ -166,9 +166,10 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
 
                 return;
             }
-            //Validar nombre
+
+            // Validar nombre
             string nombre =
-               CBnombreP.Text.Trim();
+                CBnombreP.Text.Trim();
 
             if (string.IsNullOrWhiteSpace(nombre))
             {
@@ -181,9 +182,10 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                 CBnombreP.Focus();
                 return;
             }
-            //Validar categoria
+
+            // Validar categoría
             if (CBcategoria.SelectedIndex == -1 ||
-               CBcategoria.SelectedValue == null)
+                CBcategoria.SelectedValue == null)
             {
                 MessageBox.Show(
                     "Debe seleccionar una categoría.",
@@ -207,11 +209,13 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
 
                 return;
             }
-           
 
-            //Obtener marca
+            // ========================================================
+            // OBTENER MARCA
+            // ========================================================
+
             DataTable marcas =
-               productoDAO.CargarMarcas();
+                productoDAO.CargarMarcas();
 
             DataRow filaMarca =
                 marcas.AsEnumerable()
@@ -238,9 +242,12 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                 Convert.ToInt32(
                     filaMarca["id_marca"]);
 
-            //Obtener proveedor
+            // ========================================================
+            // OBTENER PROVEEDOR
+            // ========================================================
+
             DataTable proveedores =
-               productoDAO.CargarProveedores();
+                productoDAO.CargarProveedores();
 
             DataRow filaProveedor =
                 proveedores.AsEnumerable()
@@ -267,7 +274,10 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                 Convert.ToInt32(
                     filaProveedor["id_proveedor"]);
 
-            //Crear objeto producto
+            // ========================================================
+            // CREAR OBJETO PRODUCTO
+            // ========================================================
+
             ClaseProducto producto =
                 new ClaseProducto();
 
@@ -286,19 +296,17 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
             producto.IdMarca =
                 idMarca;
 
+            // ========================================================
+            // MENSAJE DE VALIDACIÓN
+            // ========================================================
 
-            if (  resultado)
-            {
-                MessageBox.Show(
-                    "Producto actualizado correctamente.",
-                    "Correcto",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
-
-                LimpiarFormulario();
-
-            }
+            MessageBox.Show(
+                "Los datos del producto fueron validados correctamente.",
+                "Correcto",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
         }
+
 
         //Limpiar
         private void LimpiarFormulario()
