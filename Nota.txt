@@ -1,0 +1,6 @@
+Si el archivo sale dañado al abrir, talvez serrando el proyecto y volviéndolo a abrir se arregla, me pasa cuando guardo algún cambio y lo cierro y después lo vuelva abrir. El proyecto se hiso en la versión de visual studio 2026
+Contraseñas: Usuario: Leonel ,  Contraseña: leonel123 (Usuario maestro, acceso a todas las pantallas)
+            ********  Felipe ,              felipe123 (usuario normales, acceso a sus pantallas normales)
+                      Paola ,               paola123  ***
+                      Yubelkis ,            yubelkis123  ***
+                      Keling ,              keling123  ***
