@@ -1,4 +1,5 @@
 ﻿using Npgsql;
+using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,28 +10,48 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
 {
     internal class RecuperacionDAO
     {
+        private ConexionBD conexionBD = new ConexionBD();
 
-        ConexionBD conexionBD = new ConexionBD();
+    
 
         public bool ExisteCorreo(string correo)
         {
             try
             {
-                conexionBD.AbrirConexion();
+                correo = correo.Trim();
 
-                string sql = @"SELECT * FROM usuario
-                               WHERE correo = @correo";
+                if (!conexionBD.AbrirConexion())
+                {
+                    return false;
+                }
 
-                NpgsqlCommand cmd = new NpgsqlCommand(sql, conexionBD.ObtenerConexion());
+                string sql = @"
+                    SELECT 1
+                    FROM usuario
+                    WHERE correo = @correo
+                    LIMIT 1;
+                ";
 
-                cmd.Parameters.AddWithValue("@correo", correo);
+                using (NpgsqlCommand cmd =
+                    new NpgsqlCommand(
+                        sql,
+                        conexionBD.ObtenerConexion()))
+                {
+                    cmd.Parameters.AddWithValue(
+                        "@correo",
+                        NpgsqlDbType.Varchar,
+                        correo);
 
-                NpgsqlDataReader reader = cmd.ExecuteReader();
-
-                return reader.Read();
+                    using (NpgsqlDataReader reader =
+                        cmd.ExecuteReader())
+                    {
+                        return reader.Read();
+                    }
+                }
             }
-            catch
+            catch (Exception ex)
             {
+                MostrarError("ExisteCorreo", ex);
                 return false;
             }
             finally
@@ -38,34 +59,61 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
                 conexionBD.CerrarConexion();
             }
         }
+
 
         public string GenerarCodigo()
         {
             Random r = new Random();
-            return r.Next(100000, 999999).ToString();
+
+            return r.Next(100000, 1000000).ToString();
         }
 
-        public bool GuardarCodigo(string correo, string codigo)
+ 
+        public bool GuardarCodigo(
+            string correo,
+            string codigo)
         {
             try
             {
-                conexionBD.AbrirConexion();
+                correo = correo.Trim();
+                codigo = codigo.Trim();
 
-                string sql = @"UPDATE usuario
-                       SET codigo_recuperacion=@codigo,
-                           vence_codigo=@fecha
-                       WHERE correo=@correo";
+                if (!conexionBD.AbrirConexion())
+                {
+                    return false;
+                }
 
-                NpgsqlCommand cmd = new NpgsqlCommand(sql, conexionBD.ObtenerConexion());
+                string sql = @"
+                    UPDATE usuario
+                    SET codigo_recuperacion = @codigo,
+                        vence_codigo = CURRENT_TIMESTAMP + INTERVAL '5 minutes'
+                    WHERE correo = @correo;
+                ";
 
-                cmd.Parameters.AddWithValue("@codigo", codigo);
-                cmd.Parameters.AddWithValue("@fecha", DateTime.Now.AddMinutes(5));
-                cmd.Parameters.AddWithValue("@correo", correo);
+                using (NpgsqlCommand cmd =
+                    new NpgsqlCommand(
+                        sql,
+                        conexionBD.ObtenerConexion()))
+                {
+                    cmd.Parameters.AddWithValue(
+                        "@codigo",
+                        NpgsqlDbType.Varchar,
+                        codigo);
 
-                return cmd.ExecuteNonQuery() > 0;
+                    cmd.Parameters.AddWithValue(
+                        "@correo",
+                        NpgsqlDbType.Varchar,
+                        correo);
+
+                    int filasAfectadas =
+                        cmd.ExecuteNonQuery();
+
+                    return filasAfectadas > 0;
+                }
             }
-            catch
+            catch (Exception ex)
             {
+                MostrarError("GuardarCodigo", ex);
                 return false;
             }
             finally
@@ -74,29 +122,55 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
             }
         }
 
-        public bool ValidarCodigo(string correo, string codigo)
+ 
+
+        public bool ValidarCodigo(
+            string correo,
+            string codigo)
         {
             try
             {
-                conexionBD.AbrirConexion();
+                correo = correo.Trim();
+                codigo = codigo.Trim();
 
-                string sql = @"SELECT *
-                       FROM usuario
-                       WHERE correo=@correo
-                       AND codigo_recuperacion=@codigo
-                       AND vence_codigo > NOW()";
+                if (!conexionBD.AbrirConexion())
+                {
+                    return false;
+                }
 
-                NpgsqlCommand cmd = new NpgsqlCommand(sql, conexionBD.ObtenerConexion());
+                string sql = @"
+                    SELECT 1
+                    FROM usuario
+                    WHERE correo = @correo
+                      AND codigo_recuperacion = @codigo
+                      AND vence_codigo > CURRENT_TIMESTAMP
+                    LIMIT 1;
+                ";
 
-                cmd.Parameters.AddWithValue("@correo", correo);
-                cmd.Parameters.AddWithValue("@codigo", codigo);
+                using (NpgsqlCommand cmd =
+                    new NpgsqlCommand(
+                        sql,
+                        conexionBD.ObtenerConexion()))
+                {
+                    cmd.Parameters.AddWithValue(
+                        "@correo",
+                        NpgsqlDbType.Varchar,
+                        correo);
 
-                NpgsqlDataReader reader = cmd.ExecuteReader();
+                    cmd.Parameters.AddWithValue(
+                        "@codigo",
+                        NpgsqlDbType.Varchar,
+                        codigo);
 
-                return reader.Read();
+                    object resultado =
+                        cmd.ExecuteScalar();
+
+                    return resultado != null;
+                }
             }
-            catch
+            catch (Exception ex)
             {
+                MostrarError("ValidarCodigo", ex);
                 return false;
             }
             finally
@@ -105,27 +179,52 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
             }
         }
 
-        public bool CambiarPassword(string correo, string password)
+
+        public bool CambiarPassword(
+            string correo,
+            string password)
         {
             try
             {
-                conexionBD.AbrirConexion();
+                correo = correo.Trim();
 
-                string sql = @"UPDATE usuario
-                       SET password=@password,
-                           codigo_recuperacion=NULL,
-                           vence_codigo=NULL
-                       WHERE correo=@correo";
+                if (!conexionBD.AbrirConexion())
+                {
+                    return false;
+                }
 
-                NpgsqlCommand cmd = new NpgsqlCommand(sql, conexionBD.ObtenerConexion());
+                string sql = @"
+                    UPDATE usuario
+                    SET password = @password,
+                        codigo_recuperacion = NULL,
+                        vence_codigo = NULL
+                    WHERE correo = @correo;
+                ";
 
-                cmd.Parameters.AddWithValue("@password", password);
-                cmd.Parameters.AddWithValue("@correo", correo);
+                using (NpgsqlCommand cmd =
+                    new NpgsqlCommand(
+                        sql,
+                        conexionBD.ObtenerConexion()))
+                {
+                    cmd.Parameters.AddWithValue(
+                        "@password",
+                        NpgsqlDbType.Varchar,
+                        password);
 
-                return cmd.ExecuteNonQuery() > 0;
+                    cmd.Parameters.AddWithValue(
+                        "@correo",
+                        NpgsqlDbType.Varchar,
+                        correo);
+
+                    int filasAfectadas =
+                        cmd.ExecuteNonQuery();
+
+                    return filasAfectadas > 0;
+                }
             }
-            catch
+            catch (Exception ex)
             {
+                MostrarError("CambiarPassword", ex);
                 return false;
             }
             finally
@@ -136,6 +235,17 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
 
 
 
-
+        private void MostrarError(
+            string metodo,
+            Exception ex)
+        {
+            System.Windows.Forms.MessageBox.Show(
+                "Error en " + metodo + ":\n\n" +
+                ex.Message,
+                "Error de recuperación",
+                System.Windows.Forms.MessageBoxButtons.OK,
+                System.Windows.Forms.MessageBoxIcon.Error
+            );
+        }
     }
 }
