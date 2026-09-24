@@ -1,6 +1,7 @@
 ﻿using Npgsql;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,9 +10,12 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
 {
     internal class ConexionBD
     {
-
         private readonly string cadenaConexion =
-           "Host=localhost;Port=5432;Database=Payless individual;Username=postgres;Password=navarretejunior98";
+            "Host=localhost;" +
+            "Port=5432;" +
+            "Database=PAYLESS BD;" +
+            "Username=postgres;" +
+            "Password=navarretejunior98";
 
         private NpgsqlConnection conexion;
 
@@ -20,30 +24,41 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
             conexion = new NpgsqlConnection(cadenaConexion);
         }
 
+        // Obtener la conexión
         public NpgsqlConnection ObtenerConexion()
         {
             return conexion;
         }
 
+        // Abrir conexión
         public bool AbrirConexion()
         {
             try
             {
-                if (conexion.State == System.Data.ConnectionState.Closed)
+                if (conexion.State == ConnectionState.Closed)
+                {
                     conexion.Open();
+                }
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine(
+                    "Error al conectar: " + ex.Message
+                );
+
                 return false;
             }
         }
 
+        // Cerrar conexión
         public void CerrarConexion()
         {
-            if (conexion.State == System.Data.ConnectionState.Open)
+            if (conexion.State == ConnectionState.Open)
+            {
                 conexion.Close();
+            }
         }
 
         // Datos necesarios para los respaldos
@@ -60,7 +75,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
 
         public string ObtenerBaseDatos()
         {
-            return "Payless individual";
+            return "PAYLESS BD";
         }
 
         public string ObtenerUsuario()
@@ -70,9 +85,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
 
         public string ObtenerPassword()
         {
-            return "navarretejunior89";
+            return "navarretejunior98";
         }
-
-
     }
 }

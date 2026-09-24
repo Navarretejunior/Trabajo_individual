@@ -1,4 +1,4 @@
-﻿using Npgsql;
+﻿ using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -13,7 +13,6 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
 {
     internal class RespaldoBD
     {
-
         private ConexionBD conexionBD;
         private string rutaCarpetaRespaldos;
 
@@ -46,8 +45,8 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
         // =====================================================
 
         public bool CrearRespaldo(
-    string nombrePersonalizado,
-    out string rutaArchivoFinal)
+            string nombrePersonalizado,
+            out string rutaArchivoFinal)
         {
             rutaArchivoFinal = string.Empty;
 
@@ -55,12 +54,36 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
             {
                 if (!File.Exists(rutaPgDump))
                 {
+                    MessageBox.Show(
+                        "No se encontró pg_dump.exe en:\n" +
+                        rutaPgDump,
+                        "Error PostgreSQL",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+
                     return false;
                 }
 
                 if (!Directory.Exists(rutaCarpetaRespaldos))
                 {
-                    Directory.CreateDirectory(rutaCarpetaRespaldos);
+                    Directory.CreateDirectory(
+                        rutaCarpetaRespaldos);
+                }
+
+                // Limpiar el nombre del archivo
+                foreach (char caracter in
+                    Path.GetInvalidFileNameChars())
+                {
+                    nombrePersonalizado =
+                        nombrePersonalizado.Replace(
+                            caracter.ToString(),
+                            "");
+                }
+
+                if (string.IsNullOrWhiteSpace(
+                    nombrePersonalizado))
+                {
+                    nombrePersonalizado = "Respaldo";
                 }
 
                 string nombreArchivo =
@@ -71,6 +94,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
                         rutaCarpetaRespaldos,
                         nombreArchivo);
 
+                // Datos de conexión desde ConexionBD
                 string host = conexionBD.ObtenerHost();
                 int puerto = conexionBD.ObtenerPuerto();
                 string baseDatos = conexionBD.ObtenerBaseDatos();
@@ -94,7 +118,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
                 proceso.CreateNoWindow = true;
                 proceso.RedirectStandardError = true;
 
-                // Contraseña real de ConexionBD
+                // Contraseña obtenida desde ConexionBD
                 proceso.EnvironmentVariables["PGPASSWORD"] =
                     password;
 
@@ -117,6 +141,13 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
                             File.Delete(rutaArchivoFinal);
                         }
 
+                        MessageBox.Show(
+                            "ERROR AL CREAR RESPALDO:\n\n" +
+                            error,
+                            "Error PostgreSQL",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+
                         rutaArchivoFinal = string.Empty;
 
                         return false;
@@ -125,9 +156,17 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
 
                 return File.Exists(rutaArchivoFinal);
             }
-            catch
+            catch (Exception ex)
             {
+                MessageBox.Show(
+                    "ERROR AL CREAR RESPALDO:\n\n" +
+                    ex.Message,
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+
                 rutaArchivoFinal = string.Empty;
+
                 return false;
             }
             finally
@@ -140,52 +179,6 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
                 {
                 }
             }
-        }
-
-        // =====================================================
-        // OBTENER CONTRASEÑA DE POSTGRESQL
-        // =====================================================
-
-        private string ObtenerPasswordConexion()
-        {
-            try
-            {
-                conexionBD.AbrirConexion();
-
-                NpgsqlConnection conexion =
-                    conexionBD.ObtenerConexion();
-
-                // Npgsql no permite recuperar la contraseña
-                // después de crear la conexión.
-                // Por eso se obtiene desde la cadena
-                // de conexión de la clase ConexionBD.
-
-                conexionBD.CerrarConexion();
-
-                return ObtenerPasswordDesdeCadena();
-            }
-            catch
-            {
-                return string.Empty;
-            }
-            finally
-            {
-                try
-                {
-                    conexionBD.CerrarConexion();
-                }
-                catch
-                {
-                }
-            }
-        }
-
-        private string ObtenerPasswordDesdeCadena()
-        {
-            // IMPORTANTE:
-            // Aquí debes colocar la misma contraseña que
-            // utilizas en tu ConexionBD.
-            return "LeonelF_241207";
         }
 
         // =====================================================
@@ -231,16 +224,25 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
                     fila["Fecha"] =
                         informacion.LastWriteTime;
 
-                    // REEMPLAZA LA LÍNEA: fila["Tamaño"] = informacion.Length; POR ESTAS DOS:
-                    double mb = (double)informacion.Length / 1048576; // Convierte bytes a MB
-                    fila["Tamaño"] = $"{mb:F1} MB"; // Guarda el texto formateado (Ej: "25.8 MB")
+                    // Convertir bytes a MB
+                    double mb =
+                        (double)informacion.Length /
+                        1048576;
 
+                    fila["Tamaño"] =
+                        $"{mb:F1} MB";
 
                     tabla.Rows.Add(fila);
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                MessageBox.Show(
+                    "ERROR AL MOSTRAR RESPALDOS:\n\n" +
+                    ex.Message,
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
 
             return tabla;
@@ -264,8 +266,15 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                MessageBox.Show(
+                    "ERROR AL ELIMINAR RESPALDO:\n\n" +
+                    ex.Message,
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+
                 return false;
             }
         }
@@ -273,7 +282,9 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
         // =====================================================
         // RESTAURAR RESPALDO
         // =====================================================
-            public bool RestaurarRespaldo(string rutaArchivo)
+
+        public bool RestaurarRespaldo(
+            string rutaArchivo)
         {
             try
             {
@@ -291,7 +302,8 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
                 if (!File.Exists(rutaPsql))
                 {
                     MessageBox.Show(
-                        "No se encontró psql.exe en:\n" + rutaPsql,
+                        "No se encontró psql.exe en:\n" +
+                        rutaPsql,
                         "Error PostgreSQL",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
@@ -303,11 +315,20 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
                 // OBTENER DATOS DE CONEXIÓN
                 // =====================================================
 
-                string host = conexionBD.ObtenerHost();
-                int puerto = conexionBD.ObtenerPuerto();
-                string baseDatos = conexionBD.ObtenerBaseDatos();
-                string usuario = conexionBD.ObtenerUsuario();
-                string password = conexionBD.ObtenerPassword();
+                string host =
+                    conexionBD.ObtenerHost();
+
+                int puerto =
+                    conexionBD.ObtenerPuerto();
+
+                string baseDatos =
+                    conexionBD.ObtenerBaseDatos();
+
+                string usuario =
+                    conexionBD.ObtenerUsuario();
+
+                string password =
+                    conexionBD.ObtenerPassword();
 
                 // =====================================================
                 // CERRAR CONEXIÓN ACTUAL
@@ -332,9 +353,9 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
                     conexionRestauracion.Open();
 
                     string sqlLimpiar = @"
-                DROP SCHEMA public CASCADE;
-                CREATE SCHEMA public;
-            ";
+                        DROP SCHEMA public CASCADE;
+                        CREATE SCHEMA public;
+                    ";
 
                     using (NpgsqlCommand comando =
                         new NpgsqlCommand(
@@ -348,7 +369,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
                 }
 
                 // =====================================================
-                // EJECUTAR PSQl
+                // EJECUTAR PSQL
                 // =====================================================
 
                 ProcessStartInfo proceso =
@@ -403,8 +424,6 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
                     }
                 }
 
-
-
                 MessageBox.Show(
                     "El respaldo se restauró correctamente.",
                     "Restauración",
@@ -458,8 +477,15 @@ namespace Interfaces_de_Usuario_Propuestas_Payless.Conexion
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                MessageBox.Show(
+                    "ERROR AL COPIAR RESPALDO:\n\n" +
+                    ex.Message,
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+
                 return false;
             }
         }

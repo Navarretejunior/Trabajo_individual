@@ -28,6 +28,8 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
 
         List<Venta> listaVentas = new List<Venta>();
 
+        private NodoProducto raizProductos = null;
+
         const decimal IVA_PORCENTAJE = 0.15m;
 
         const decimal TIPO_CAMBIO = 36.40m;
@@ -57,6 +59,22 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
             public int Talla { get; set; }
             public decimal Precio { get; set; }
             public int Stock { get; set; }
+        }
+
+        public class NodoProducto
+        {
+            public Producto Producto { get; set; }
+
+            public NodoProducto Izquierdo { get; set; }
+
+            public NodoProducto Derecho { get; set; }
+
+            public NodoProducto(Producto producto)
+            {
+                Producto = producto;
+                Izquierdo = null;
+                Derecho = null;
+            }
         }
 
         public class Clientes
@@ -107,7 +125,107 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
 
 
 
+        private string ObtenerClaveProducto(Producto producto)
+        {
+            return producto.Nombre + "|" + producto.Talla;
+        }
 
+        // Insertar un producto en el árbol binario
+        private NodoProducto InsertarProducto(
+            NodoProducto nodo,
+            Producto producto)
+        {
+            if (nodo == null)
+            {
+                return new NodoProducto(producto);
+            }
+
+            string claveProducto =
+                ObtenerClaveProducto(producto);
+
+            string claveNodo =
+                ObtenerClaveProducto(nodo.Producto);
+
+            int comparacion = string.Compare(
+                claveProducto,
+                claveNodo,
+                StringComparison.OrdinalIgnoreCase);
+
+            if (comparacion < 0)
+            {
+                nodo.Izquierdo =
+                    InsertarProducto(
+                        nodo.Izquierdo,
+                        producto);
+            }
+            else if (comparacion > 0)
+            {
+                nodo.Derecho =
+                    InsertarProducto(
+                        nodo.Derecho,
+                        producto);
+            }
+
+            return nodo;
+        }
+
+        // Construir el árbol binario con los productos
+        private void ConstruirArbolProductos()
+        {
+            raizProductos = null;
+
+            foreach (Producto producto in listaProductos)
+            {
+                if (producto.Stock > 0)
+                {
+                    raizProductos =
+                        InsertarProducto(
+                            raizProductos,
+                            producto);
+                }
+            }
+        }
+
+        // Buscar un producto utilizando el árbol binario
+        private Producto BuscarProductoArbol(
+            NodoProducto nodo,
+            string nombre,
+            int talla)
+        {
+            if (nodo == null)
+            {
+                return null;
+            }
+
+            string claveBuscada =
+                nombre + "|" + talla;
+
+            string claveNodo =
+                ObtenerClaveProducto(nodo.Producto);
+
+            int comparacion = string.Compare(
+                claveBuscada,
+                claveNodo,
+                StringComparison.OrdinalIgnoreCase);
+
+            if (comparacion == 0)
+            {
+                return nodo.Producto;
+            }
+
+            if (comparacion < 0)
+            {
+                return BuscarProductoArbol(
+                    nodo.Izquierdo,
+                    nombre,
+                    talla);
+            }
+
+            return BuscarProductoArbol(
+                nodo.Derecho,
+                nombre,
+                talla);
+        }
 
 
 
@@ -482,23 +600,40 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
 
             string nombreProducto = cmbProducto.Text;
 
-            int talla = Convert.ToInt32(cmbTalla.Text);
+            int talla = Convert.ToInt32(
+                cmbTalla.Text);
 
-            Producto productoSeleccionado = listaProductos.FirstOrDefault(
-                p => p.Nombre == nombreProducto &&
-                     p.Talla == talla);
+            // Construir el árbol binario
+            ConstruirArbolProductos();
+
+            // Buscar el producto utilizando el árbol binario
+            Producto productoSeleccionado =
+                BuscarProductoArbol(
+                    raizProductos,
+                    nombreProducto,
+                    talla);
 
             if (productoSeleccionado != null)
             {
-                txtCodigoProducto.Text = productoSeleccionado.Codigo;
+                txtCodigoProducto.Text =
+                    productoSeleccionado.Codigo;
 
-                txtCategoria.Text = productoSeleccionado.Categoria;
+                txtCategoria.Text =
+                    productoSeleccionado.Categoria;
 
-                txtMarca.Text = productoSeleccionado.Marca;
+                txtMarca.Text =
+                    productoSeleccionado.Marca;
 
-                txtPrecioVenta.Text = productoSeleccionado.Precio.ToString("N2");
+                txtPrecioVenta.Text =
+                    productoSeleccionado.Precio.ToString("N2");
 
-                txtStockActual.Text = productoSeleccionado.Stock.ToString();
+                txtStockActual.Text =
+                    productoSeleccionado.Stock.ToString();
+            }
+            else
+            {
+                MessageBox.Show(
+                    "No se encontró el producto seleccionado.");
             }
         }
 
