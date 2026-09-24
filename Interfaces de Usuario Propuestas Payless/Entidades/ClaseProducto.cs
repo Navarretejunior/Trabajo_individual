@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Interfaces_de_Usuario_Propuestas_Payless.Ventas;
 
 namespace Interfaces_de_Usuario_Propuestas_Payless
 {
@@ -46,5 +47,6 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
             {
             }
         }
+
     }
 }
