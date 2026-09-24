@@ -1,6 +1,6 @@
 ﻿using Interfaces_de_Usuario_Propuestas_Payless.Conexion;
 using Interfaces_de_Usuario_Propuestas_Payless.Datos;
-//using Interfaces_de_Usuario_Propuestas_Payless.Formularios;
+using Interfaces_de_Usuario_Propuestas_Payless.Formularios;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,11 +13,13 @@ using System.Windows.Forms;
 
 namespace Interfaces_de_Usuario_Propuestas_Payless
 {
-    public partial class Login: Form
+    public partial class Login : Form
     {
         public Login()
         {
             InitializeComponent();
+
+
         }
 
         private void btnSesion_Click(object sender, EventArgs e)
@@ -53,7 +55,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                 this.Hide();
             }
 
-            else 
+            else
             {
                 MessageBox.Show("Usuario o contraseña incorrectos.");
             }
@@ -123,8 +125,8 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
              MessageBox.Show("Bienvenido " + ClaseSesion.UsuarioActual + "!");
              this.Hide();
              new Menú_Principal().Show();*/
-        }   
-       
+        }
+
 
         private void button2_Click(object sender, EventArgs e)
         {
@@ -140,50 +142,59 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
 
         private void btnProbarConexion_Click(object sender, EventArgs e)
         {
-            ConexionBD conexionBD = new ConexionBD();
 
-            try
-            {
-                if (conexionBD.AbrirConexion())
-                {
-                    MessageBox.Show(
-                        "Conexión exitosa con la base de datos PAYLESS BD.",
-                        "Conexión exitosa",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                    );
-
-                    conexionBD.CerrarConexion();
-                }
-                else
-                {
-                    MessageBox.Show(
-                        "No se pudo conectar a la base de datos.",
-                        "Error de conexión",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error
-                    );
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    "Ocurrió un error al probar la conexión:\n\n" +
-                    ex.Message,
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
-            }
-            finally
-            {
-                conexionBD.CerrarConexion();
-            }
         }
 
         private void Login_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void btnConexionBD_Click(object sender, EventArgs e)
+        {
+            {
+                ConexionBD conexionBD = new ConexionBD();
+
+                try
+                {
+                    if (conexionBD.AbrirConexion())
+                    {
+                        MessageBox.Show(
+                            "Conexión exitosa con la base de datos PAYLESS BD.",
+                            "Conexión exitosa",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information
+                        );
+
+                        conexionBD.CerrarConexion();
+                    }
+                    else
+                    {
+                        MessageBox.Show(
+                            "No se pudo conectar a la base de datos.",
+                            "Error de conexión",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        "Ocurrió un error al probar la conexión:\n\n" +
+                        ex.Message,
+                        "Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                }
+                finally
+                {
+                    conexionBD.CerrarConexion();
+                }
+
+
+            }
         }
     }
 }

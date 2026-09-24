@@ -104,7 +104,24 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
         {
             RecuperacionDAO dao = new RecuperacionDAO();
 
-            if (dao.ValidarCodigo(txtCorreo.Text, txtCodigo.Text))
+            string correo = txtCorreo.Text.Trim();
+            string codigo = txtCodigo.Text.Trim();
+
+            if (correo == "")
+            {
+                MessageBox.Show("Ingrese su correo.");
+                txtCorreo.Focus();
+                return;
+            }
+
+            if (codigo == "")
+            {
+                MessageBox.Show("Ingrese el código de recuperación.");
+                txtCodigo.Focus();
+                return;
+            }
+
+            if (dao.ValidarCodigo(correo, codigo))
             {
                 MessageBox.Show("Código correcto.");
 
@@ -118,7 +135,9 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
             }
             else
             {
-                MessageBox.Show("Código incorrecto o vencido.");
+                MessageBox.Show(
+                    "Código incorrecto o vencido."
+                );
             }
         }
 
