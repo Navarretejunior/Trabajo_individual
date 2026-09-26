@@ -501,7 +501,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                 dataGridView1.Rows.Clear();
 
                 string query = @"
-            SELECT concepto, monto, fecha
+            SELECT descripcion, monto, fecha
             FROM egreso_caja
             WHERE id_caja = @id_caja
             ORDER BY fecha DESC;
@@ -526,7 +526,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                         while (reader.Read())
                         {
                             dataGridView1.Rows.Add(
-                                reader["concepto"].ToString(),
+                                reader["descripcion"].ToString(),
                                 "C$ " + Convert.ToDecimal(reader["monto"]).ToString("N2"),
                                 Convert.ToDateTime(reader["fecha"])
                                     .ToString("dd/MM/yyyy HH:mm")
@@ -542,7 +542,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                 conexionBD.CerrarConexion();
 
                 MessageBox.Show(
-                    "Error al cargar los movimientos: " + ex.Message,
+                    "Error al cargar los movimientos:\n\n" + ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
@@ -553,59 +553,99 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
         {
             if (cajaActual == null)
             {
-                MessageBox.Show("No hay una caja abierta.");
+                MessageBox.Show(
+                    "No existe una caja abierta.",
+                    "Caja",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
                 return;
             }
 
             string concepto = textBox4.Text.Trim();
-            string montoTexto = textBox5.Text.Trim();
+            decimal monto;
 
-            if (string.IsNullOrWhiteSpace(concepto) ||
-                string.IsNullOrWhiteSpace(montoTexto))
+            if (string.IsNullOrWhiteSpace(concepto))
             {
-                MessageBox.Show("Ingrese el concepto y el monto.");
+                MessageBox.Show(
+                    "Ingrese el concepto del movimiento.",
+                    "Validación",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBox4.Focus();
                 return;
             }
 
-            decimal monto;
-
-            if (!decimal.TryParse(montoTexto, out monto) || monto <= 0)
+            if (!decimal.TryParse(textBox5.Text, out monto))
             {
-                MessageBox.Show("Ingrese un monto válido.");
+                MessageBox.Show(
+                    "Ingrese un monto válido.",
+                    "Validación",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBox5.Focus();
+                return;
+            }
+
+            if (monto <= 0)
+            {
+                MessageBox.Show(
+                    "El monto debe ser mayor que cero.",
+                    "Validación",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBox5.Focus();
                 return;
             }
 
             try
             {
-                string query = @"
+                string sql = @"
             INSERT INTO egreso_caja
-            (id_caja, concepto, monto, fecha)
+            (
+                descripcion,
+                monto,
+                fecha,
+                id_caja
+            )
             VALUES
-            (@id_caja, @concepto, @monto, CURRENT_TIMESTAMP);
+            (
+                @descripcion,
+                @monto,
+                CURRENT_TIMESTAMP,
+                @id_caja
+            );
         ";
 
                 if (!conexionBD.AbrirConexion())
                 {
                     MessageBox.Show(
-                        "No se pudo establecer conexión con la base de datos.");
+                        "No se pudo conectar con la base de datos.",
+                        "Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+
                     return;
                 }
 
                 using (NpgsqlCommand cmd = new NpgsqlCommand(
-                    query,
+                    sql,
                     conexionBD.ObtenerConexion()))
                 {
                     cmd.Parameters.AddWithValue(
-                        "@id_caja",
-                        cajaActual.IdCaja);
-
-                    cmd.Parameters.AddWithValue(
-                        "@concepto",
+                        "@descripcion",
                         concepto);
 
                     cmd.Parameters.AddWithValue(
                         "@monto",
                         monto);
+
+                    cmd.Parameters.AddWithValue(
+                        "@id_caja",
+                        cajaActual.IdCaja);
 
                     cmd.ExecuteNonQuery();
                 }
@@ -629,7 +669,8 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                 conexionBD.CerrarConexion();
 
                 MessageBox.Show(
-                    "Error al guardar el movimiento:\n\n" + ex.Message,
+                    "Error al guardar el movimiento:\n\n" +
+                    ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
