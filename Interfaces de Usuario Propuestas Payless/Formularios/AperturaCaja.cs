@@ -167,5 +167,12 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
 
             txtMontoInicial.Focus();
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Caja ventana = new Caja();
+            ventana.Show();
+            this.Hide();
+        }
     }
 }
