@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static System.Collections.Specialized.BitVector32;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Interfaces_de_Usuario_Propuestas_Payless
 {
@@ -208,70 +209,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
             if (cajaActual == null)
                 return;
 
-            List<TextBox> textBoxes =
-                ObtenerTextBox(this);
-
-            if (textBoxes.Count >= 1)
-                textBoxes[0].Text =
-                    ClaseSesion.UsuarioActual;
-
-            if (textBoxes.Count >= 2)
-                textBoxes[1].Text =
-                    cajaActual.SaldoInicial.ToString("N2");
-
-            decimal ingresos =
-                ObtenerIngresos();
-
-            decimal egresos =
-                ObtenerEgresos();
-
-            decimal saldoFinal =
-                cajaActual.SaldoInicial +
-                ingresos -
-                egresos;
-
-            if (textBoxes.Count >= 3)
-                textBoxes[2].Text =
-                    ingresos.ToString("N2");
-
-            if (textBoxes.Count >= 4)
-                textBoxes[3].Text =
-                    egresos.ToString("N2");
-
-            if (textBoxes.Count >= 5)
-                textBoxes[4].Text =
-                    saldoFinal.ToString("N2");
-        }
-
-        // =========================================================
-        // OBTENER TODOS LOS TEXTBOX DEL FORMULARIO
-        // =========================================================
-
-        private List<TextBox> ObtenerTextBox(Control control)
-        {
-            List<TextBox> resultado =
-                new List<TextBox>();
-
-            foreach (Control elemento in control.Controls)
-            {
-                if (elemento is TextBox)
-                {
-                    resultado.Add(
-                        (TextBox)elemento);
-                }
-
-                if (elemento.HasChildren)
-                {
-                    resultado.AddRange(
-                        ObtenerTextBox(elemento));
-                }
-            }
-
-            resultado = resultado
-                .OrderBy(x => x.TabIndex)
-                .ToList();
-
-            return resultado;
+            txtUsuario.Text = ClaseSesion.UsuarioActual;
         }
 
         // =========================================================
@@ -373,13 +311,11 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
 
         private void LimpiarCaja()
         {
-            List<TextBox> textBoxes =
-                ObtenerTextBox(this);
+            txtUsuario.Clear();
+            textBox4.Clear();
+            textBox5.Clear();
 
-            foreach (TextBox txt in textBoxes)
-            {
-                txt.Clear();
-            }
+            dataGridView1.Rows.Clear();
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -555,133 +491,121 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
 
         }
 
+        private void CargarMovimientos()
+        {
+            if (cajaActual == null)
+                return;
+
+            try
+            {
+                dataGridView1.Rows.Clear();
+
+                string query = @"
+            SELECT concepto, monto, fecha
+            FROM egreso_caja
+            WHERE id_caja = @id_caja
+            ORDER BY fecha DESC;
+        ";
+
+                if (!conexionBD.AbrirConexion())
+                {
+                    MessageBox.Show("No se pudo establecer conexión con la base de datos.");
+                    return;
+                }
+
+                using (NpgsqlCommand cmd = new NpgsqlCommand(
+                    query,
+                    conexionBD.ObtenerConexion()))
+                {
+                    cmd.Parameters.AddWithValue(
+                        "@id_caja",
+                        cajaActual.IdCaja);
+
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            dataGridView1.Rows.Add(
+                                reader["concepto"].ToString(),
+                                "C$ " + Convert.ToDecimal(reader["monto"]).ToString("N2"),
+                                Convert.ToDateTime(reader["fecha"])
+                                    .ToString("dd/MM/yyyy HH:mm")
+                            );
+                        }
+                    }
+                }
+
+                conexionBD.CerrarConexion();
+            }
+            catch (Exception ex)
+            {
+                conexionBD.CerrarConexion();
+
+                MessageBox.Show(
+                    "Error al cargar los movimientos: " + ex.Message,
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
         private void btnGuardarMovimiento_Click(object sender, EventArgs e)
         {
             if (cajaActual == null)
             {
-                MessageBox.Show(
-                    "No existe una caja abierta.",
-                    "Caja",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-
+                MessageBox.Show("No hay una caja abierta.");
                 return;
             }
 
-            List<TextBox> textBoxes =
-                ObtenerTextBox(this);
+            string concepto = textBox4.Text.Trim();
+            string montoTexto = textBox5.Text.Trim();
 
-            if (textBoxes.Count < 7)
+            if (string.IsNullOrWhiteSpace(concepto) ||
+                string.IsNullOrWhiteSpace(montoTexto))
             {
-                MessageBox.Show(
-                    "No se encontraron todos los campos necesarios del formulario.",
-                    "Caja",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-
+                MessageBox.Show("Ingrese el concepto y el monto.");
                 return;
             }
-
-            // =====================================================
-            // CONCEPTO Y MONTO
-            // =====================================================
-
-            string concepto =
-                textBoxes[5].Text.Trim();
 
             decimal monto;
 
-            if (string.IsNullOrWhiteSpace(concepto))
+            if (!decimal.TryParse(montoTexto, out monto) || monto <= 0)
             {
-                MessageBox.Show(
-                    "Ingrese el concepto del movimiento.",
-                    "Validación",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-
-                textBoxes[5].Focus();
-
+                MessageBox.Show("Ingrese un monto válido.");
                 return;
             }
-
-            if (!decimal.TryParse(
-                textBoxes[6].Text,
-                out monto))
-            {
-                MessageBox.Show(
-                    "Ingrese un monto válido.",
-                    "Validación",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-
-                textBoxes[6].Focus();
-
-                return;
-            }
-
-            if (monto <= 0)
-            {
-                MessageBox.Show(
-                    "El monto debe ser mayor que cero.",
-                    "Validación",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-
-                textBoxes[6].Focus();
-
-                return;
-            }
-
-            // =====================================================
-            // GUARDAR EN EGRESO_CAJA
-            // =====================================================
 
             try
             {
-                string sql = @"
-                    INSERT INTO egreso_caja
-                    (
-                        descripcion,
-                        monto,
-                        fecha,
-                        id_caja
-                    )
-                    VALUES
-                    (
-                        @descripcion,
-                        @monto,
-                        CURRENT_TIMESTAMP,
-                        @id_caja
-                    );
-                ";
+                string query = @"
+            INSERT INTO egreso_caja
+            (id_caja, concepto, monto, fecha)
+            VALUES
+            (@id_caja, @concepto, @monto, CURRENT_TIMESTAMP);
+        ";
 
                 if (!conexionBD.AbrirConexion())
                 {
                     MessageBox.Show(
-                        "No se pudo conectar con la base de datos.",
-                        "Error",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error);
-
+                        "No se pudo establecer conexión con la base de datos.");
                     return;
                 }
 
-                using (NpgsqlCommand cmd =
-                    new NpgsqlCommand(
-                        sql,
-                        conexionBD.ObtenerConexion()))
+                using (NpgsqlCommand cmd = new NpgsqlCommand(
+                    query,
+                    conexionBD.ObtenerConexion()))
                 {
                     cmd.Parameters.AddWithValue(
-                        "@descripcion",
+                        "@id_caja",
+                        cajaActual.IdCaja);
+
+                    cmd.Parameters.AddWithValue(
+                        "@concepto",
                         concepto);
 
                     cmd.Parameters.AddWithValue(
                         "@monto",
                         monto);
-
-                    cmd.Parameters.AddWithValue(
-                        "@id_caja",
-                        cajaActual.IdCaja);
 
                     cmd.ExecuteNonQuery();
                 }
@@ -694,9 +618,10 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
 
-                textBoxes[5].Clear();
-                textBoxes[6].Clear();
+                textBox4.Clear();
+                textBox5.Clear();
 
+                CargarMovimientos();
                 CargarCaja();
             }
             catch (Exception ex)
@@ -704,8 +629,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                 conexionBD.CerrarConexion();
 
                 MessageBox.Show(
-                    "Error al guardar el movimiento:\n\n" +
-                    ex.Message,
+                    "Error al guardar el movimiento:\n\n" + ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
