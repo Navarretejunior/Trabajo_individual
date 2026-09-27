@@ -235,14 +235,12 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
             label23.Text = "C $ " +
                 saldoFinal.ToString("N2");
 
-            // MUY IMPORTANTE:
-            // No colocar datos de caja dentro de textBox4 ni textBox5.
-            // Esos TextBox son únicamente para registrar movimientos.
+            
 
             textBox4.Clear();
             textBox5.Clear();
 
-            // Cargar movimientos en el DataGridView
+  
             CargarMovimientos();
         }
 
@@ -564,33 +562,33 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                     conexion.Open();
 
                     string sql = @"
-                SELECT concepto, monto, fecha
+                SELECT descripcion, monto, fecha
                 FROM egreso_caja
                 WHERE id_caja = @id_caja
-                ORDER BY fecha DESC";
+                ORDER BY fecha ASC";
 
                     using (Npgsql.NpgsqlCommand comando =
                         new Npgsql.NpgsqlCommand(sql, conexion))
                     {
-                        comando.Parameters.AddWithValue(
-                            "@id_caja", cajaActual.IdCaja);
+                        comando.Parameters.AddWithValue("@id_caja", cajaActual.IdCaja);
 
                         using (Npgsql.NpgsqlDataReader reader =
                             comando.ExecuteReader())
                         {
                             while (reader.Read())
                             {
-                                string concepto = reader["concepto"].ToString();
+                                string descripcion =
+                                    reader["descripcion"].ToString();
 
-                                decimal monto = Convert.ToDecimal(
-                                    reader["monto"]);
+                                decimal monto =
+                                    Convert.ToDecimal(reader["monto"]);
 
-                                DateTime fecha = Convert.ToDateTime(
-                                    reader["fecha"]);
+                                DateTime fecha =
+                                    Convert.ToDateTime(reader["fecha"]);
 
                                 dataGridView1.Rows.Add(
-                                    concepto,
-                                    "C $ " + monto.ToString("N2"),
+                                    descripcion,
+                                    "C$ " + monto.ToString("N2"),
                                     fecha.ToString("dd/MM/yyyy HH:mm:ss")
                                 );
                             }
@@ -601,7 +599,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    "Error al cargar los movimientos:\n" + ex.Message,
+                    "Error al cargar los movimientos:\n\n" + ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
@@ -621,8 +619,8 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                     return;
                 }
 
-                // textBox4 = CONCEPTO
-                // textBox5 = MONTO
+                // textBox4 = Concepto
+                // textBox5 = Monto
                 string concepto = textBox4.Text.Trim();
                 string textoMonto = textBox5.Text.Trim();
 
@@ -657,24 +655,17 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
 
                     string sql = @"
                 INSERT INTO egreso_caja
-                (id_caja, concepto, monto, fecha)
+                (id_caja, descripcion, monto, fecha)
                 VALUES
-                (@id_caja, @concepto, @monto, @fecha)";
+                (@id_caja, @descripcion, @monto, @fecha)";
 
                     using (Npgsql.NpgsqlCommand comando =
                         new Npgsql.NpgsqlCommand(sql, conexion))
                     {
-                        comando.Parameters.AddWithValue(
-                            "@id_caja", cajaActual.IdCaja);
-
-                        comando.Parameters.AddWithValue(
-                            "@concepto", concepto);
-
-                        comando.Parameters.AddWithValue(
-                            "@monto", monto);
-
-                        comando.Parameters.AddWithValue(
-                            "@fecha", DateTime.Now);
+                        comando.Parameters.AddWithValue("@id_caja", cajaActual.IdCaja);
+                        comando.Parameters.AddWithValue("@descripcion", concepto);
+                        comando.Parameters.AddWithValue("@monto", monto);
+                        comando.Parameters.AddWithValue("@fecha", DateTime.Now);
 
                         comando.ExecuteNonQuery();
                     }
@@ -685,16 +676,17 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
 
+                // Limpiar los campos
                 textBox4.Clear();
                 textBox5.Clear();
 
-                // Actualiza la información de la caja
+                // Actualizar caja y DataGridView
                 CargarCaja();
+                CargarMovimientos();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    "Error al guardar el movimiento:\n" + ex.Message,
+                MessageBox.Show("Error al guardar el movimiento:\n\n" + ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
