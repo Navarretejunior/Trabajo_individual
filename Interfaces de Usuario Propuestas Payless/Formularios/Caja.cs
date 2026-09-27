@@ -24,6 +24,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
             InitializeComponent();
 
             conexionBD = new ConexionBD();
+            textBox5.ReadOnly = true;
         }
 
         private void Caja_Load(object sender, EventArgs e)
@@ -208,40 +209,43 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
             if (cajaActual == null)
                 return;
 
-            // Usuario
-            txtUsuario.Text = ClaseSesion.UsuarioActual;
+            List<TextBox> textBoxes =
+                ObtenerTextBox(this);
 
-            // Saldo inicial
-            label9.Text = "C $ " +
-                cajaActual.SaldoInicial.ToString("N2");
+            if (textBoxes.Count >= 1)
+                textBoxes[0].Text =
+                    ClaseSesion.UsuarioActual;
 
-            // Obtener ingresos y egresos
-            decimal ingresos = ObtenerIngresos();
-            decimal egresos = ObtenerEgresos();
+            if (textBoxes.Count >= 2)
+                textBoxes[1].Text =
+                    cajaActual.SaldoInicial.ToString("N2");
 
-            // Calcular saldo final
+            decimal ingresos =
+                ObtenerIngresos();
+
+            decimal egresos =
+                ObtenerEgresos();
+
             decimal saldoFinal =
                 cajaActual.SaldoInicial +
                 ingresos -
                 egresos;
 
-            // Mostrar resumen
-            label12.Text = "C $ " +
-                ingresos.ToString("N2");
+            if (textBoxes.Count >= 3)
+                textBoxes[2].Text =
+                    ingresos.ToString("N2");
 
-            label19.Text = "C $ " +
-                egresos.ToString("N2");
+            if (textBoxes.Count >= 4)
+                textBoxes[3].Text =
+                    egresos.ToString("N2");
 
-            label23.Text = "C $ " +
-                saldoFinal.ToString("N2");
+            if (textBoxes.Count >= 5)
+                textBoxes[4].Text =
+                    saldoFinal.ToString("N2");
 
-            
-
-            textBox4.Clear();
-            textBox5.Clear();
-
-  
-            CargarMovimientos();
+            // Monto del movimiento tomado de la apertura de caja
+            textBox5.Text =
+                cajaActual.SaldoInicial.ToString("N2");
         }
 
         private List<TextBox> ObtenerTextBox(Control control)
@@ -620,9 +624,9 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                 }
 
                 // textBox4 = Concepto
-                // textBox5 = Monto
+                // textBox5 = Monto automático de apertura
+
                 string concepto = textBox4.Text.Trim();
-                string textoMonto = textBox5.Text.Trim();
 
                 if (string.IsNullOrWhiteSpace(concepto))
                 {
@@ -635,16 +639,16 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                     return;
                 }
 
-                decimal monto;
+                // El monto se toma automáticamente de la apertura de caja
+                decimal monto = cajaActual.SaldoInicial;
 
-                if (!decimal.TryParse(textoMonto, out monto) || monto <= 0)
+                if (monto <= 0)
                 {
-                    MessageBox.Show("Ingrese un monto válido.",
+                    MessageBox.Show("El monto de apertura de caja no es válido.",
                         "Aviso",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning);
 
-                    textBox5.Focus();
                     return;
                 }
 
@@ -654,18 +658,29 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                     conexion.Open();
 
                     string sql = @"
-                INSERT INTO egreso_caja
-                (id_caja, descripcion, monto, fecha)
-                VALUES
-                (@id_caja, @descripcion, @monto, @fecha)";
+        INSERT INTO egreso_caja
+        (id_caja, descripcion, monto, fecha)
+        VALUES
+        (@id_caja, @descripcion, @monto, @fecha)";
 
                     using (Npgsql.NpgsqlCommand comando =
                         new Npgsql.NpgsqlCommand(sql, conexion))
                     {
-                        comando.Parameters.AddWithValue("@id_caja", cajaActual.IdCaja);
-                        comando.Parameters.AddWithValue("@descripcion", concepto);
-                        comando.Parameters.AddWithValue("@monto", monto);
-                        comando.Parameters.AddWithValue("@fecha", DateTime.Now);
+                        comando.Parameters.AddWithValue(
+                            "@id_caja",
+                            cajaActual.IdCaja);
+
+                        comando.Parameters.AddWithValue(
+                            "@descripcion",
+                            concepto);
+
+                        comando.Parameters.AddWithValue(
+                            "@monto",
+                            monto);
+
+                        comando.Parameters.AddWithValue(
+                            "@fecha",
+                            DateTime.Now);
 
                         comando.ExecuteNonQuery();
                     }
@@ -676,9 +691,11 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
 
-                // Limpiar los campos
+                // Limpiar solamente el concepto
                 textBox4.Clear();
-                textBox5.Clear();
+
+                // El monto vuelve a mostrar el monto de apertura
+                textBox5.Text = cajaActual.SaldoInicial.ToString("N2");
 
                 // Actualizar caja y DataGridView
                 CargarCaja();
@@ -686,7 +703,8 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al guardar el movimiento:\n\n" + ex.Message,
+                MessageBox.Show(
+                    "Error al guardar el movimiento:\n\n" + ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
