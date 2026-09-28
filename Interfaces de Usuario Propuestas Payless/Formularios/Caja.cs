@@ -24,6 +24,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
             InitializeComponent();
 
             conexionBD = new ConexionBD();
+
             textBox5.ReadOnly = true;
         }
 
@@ -85,7 +86,108 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
         {
             try
             {
-                string sql = @"
+                cajaActual = null;
+
+                using (Npgsql.NpgsqlConnection conexion =
+                    new ConexionBD().ObtenerConexion())
+                {
+                    conexion.Open();
+
+                    // =====================================================
+                    // 1. BUSCAR CAJA ABIERTA
+                    // =====================================================
+
+                    string sql = @"
+                SELECT
+                    id_caja,
+                    fecha_apertura,
+                    fecha_cierre,
+                    saldo_inicial,
+                    monto_esperado,
+                    monto_arqueo,
+                    diferencia,
+                    saldo_final,
+                    tipo_cambio_dolar,
+                    estado_caja,
+                    id_usuario
+                FROM caja
+                WHERE id_usuario = @id_usuario
+                AND estado_caja = 'Abierta'
+                ORDER BY id_caja DESC
+                LIMIT 1;
+            ";
+
+                    using (Npgsql.NpgsqlCommand comando =
+                        new Npgsql.NpgsqlCommand(sql, conexion))
+                    {
+                        comando.Parameters.AddWithValue(
+                            "@id_usuario",
+                            ClaseSesion.IdUsuario);
+
+                        using (Npgsql.NpgsqlDataReader reader =
+                            comando.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                cajaActual = new ClaseCaja();
+
+                                cajaActual.IdCaja =
+                                    Convert.ToInt32(reader["id_caja"]);
+
+                                cajaActual.FechaApertura =
+                                    Convert.ToDateTime(reader["fecha_apertura"]);
+
+                                if (reader["fecha_cierre"] != DBNull.Value)
+                                {
+                                    cajaActual.FechaCierre =
+                                        Convert.ToDateTime(reader["fecha_cierre"]);
+                                }
+                                else
+                                {
+                                    cajaActual.FechaCierre = null;
+                                }
+
+                                cajaActual.SaldoInicial =
+                                    Convert.ToDecimal(reader["saldo_inicial"]);
+
+                                cajaActual.MontoEsperado =
+                                    Convert.ToDecimal(reader["monto_esperado"]);
+
+                                cajaActual.MontoArqueo =
+                                    Convert.ToDecimal(reader["monto_arqueo"]);
+
+                                cajaActual.Diferencia =
+                                    Convert.ToDecimal(reader["diferencia"]);
+
+                                if (reader["saldo_final"] != DBNull.Value)
+                                {
+                                    cajaActual.SaldoFinal =
+                                        Convert.ToDecimal(reader["saldo_final"]);
+                                }
+                                else
+                                {
+                                    cajaActual.SaldoFinal = 0;
+                                }
+
+                                cajaActual.TipoCambioDolar =
+                                    Convert.ToDecimal(reader["tipo_cambio_dolar"]);
+
+                                cajaActual.EstadoCaja =
+                                    reader["estado_caja"].ToString();
+
+                                cajaActual.IdUsuario =
+                                    Convert.ToInt32(reader["id_usuario"]);
+                            }
+                        }
+                    }
+
+                    // =====================================================
+                    // 2. SI NO HAY CAJA ABIERTA, BUSCAR LA ÚLTIMA CAJA
+                    // =====================================================
+
+                    if (cajaActual == null)
+                    {
+                        string sqlUltimaCaja = @"
                     SELECT
                         id_caja,
                         fecha_apertura,
@@ -100,103 +202,112 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                         id_usuario
                     FROM caja
                     WHERE id_usuario = @id_usuario
-                    AND estado_caja = 'Abierta'
                     ORDER BY id_caja DESC
                     LIMIT 1;
                 ";
 
-                if (!conexionBD.AbrirConexion())
-                {
-                    MessageBox.Show(
-                        "No se pudo establecer conexión con la base de datos.",
-                        "Error",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error);
-
-                    return;
-                }
-
-                using (NpgsqlCommand cmd =
-                    new NpgsqlCommand(
-                        sql,
-                        conexionBD.ObtenerConexion()))
-                {
-                    cmd.Parameters.AddWithValue(
-                        "@id_usuario",
-                        ClaseSesion.IdUsuario);
-
-                    using (NpgsqlDataReader reader =
-                        cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
+                        using (Npgsql.NpgsqlCommand comandoUltima =
+                            new Npgsql.NpgsqlCommand(
+                                sqlUltimaCaja,
+                                conexion))
                         {
-                            cajaActual = new ClaseCaja();
+                            comandoUltima.Parameters.AddWithValue(
+                                "@id_usuario",
+                                ClaseSesion.IdUsuario);
 
-                            cajaActual.IdCaja =
-                                Convert.ToInt32(reader["id_caja"]);
+                            using (Npgsql.NpgsqlDataReader reader =
+                                comandoUltima.ExecuteReader())
+                            {
+                                if (reader.Read())
+                                {
+                                    cajaActual = new ClaseCaja();
 
-                            cajaActual.FechaApertura =
-                                Convert.ToDateTime(reader["fecha_apertura"]);
+                                    cajaActual.IdCaja =
+                                        Convert.ToInt32(reader["id_caja"]);
 
-                            cajaActual.FechaCierre =
-                                reader["fecha_cierre"] == DBNull.Value
-                                ? (DateTime?)null
-                                : Convert.ToDateTime(reader["fecha_cierre"]);
+                                    cajaActual.FechaApertura =
+                                        Convert.ToDateTime(
+                                            reader["fecha_apertura"]);
 
-                            cajaActual.SaldoInicial =
-                                Convert.ToDecimal(reader["saldo_inicial"]);
+                                    if (reader["fecha_cierre"] != DBNull.Value)
+                                    {
+                                        cajaActual.FechaCierre =
+                                            Convert.ToDateTime(
+                                                reader["fecha_cierre"]);
+                                    }
+                                    else
+                                    {
+                                        cajaActual.FechaCierre = null;
+                                    }
 
-                            cajaActual.MontoEsperado =
-                                Convert.ToDecimal(reader["monto_esperado"]);
+                                    cajaActual.SaldoInicial =
+                                        Convert.ToDecimal(
+                                            reader["saldo_inicial"]);
 
-                            cajaActual.MontoArqueo =
-                                Convert.ToDecimal(reader["monto_arqueo"]);
+                                    cajaActual.MontoEsperado =
+                                        Convert.ToDecimal(
+                                            reader["monto_esperado"]);
 
-                            cajaActual.Diferencia =
-                                Convert.ToDecimal(reader["diferencia"]);
+                                    cajaActual.MontoArqueo =
+                                        Convert.ToDecimal(
+                                            reader["monto_arqueo"]);
 
-                            cajaActual.SaldoFinal =
-                                reader["saldo_final"] == DBNull.Value
-                                ? 0
-                                : Convert.ToDecimal(reader["saldo_final"]);
+                                    cajaActual.Diferencia =
+                                        Convert.ToDecimal(
+                                            reader["diferencia"]);
 
-                            cajaActual.TipoCambioDolar =
-                                Convert.ToDecimal(reader["tipo_cambio_dolar"]);
+                                    if (reader["saldo_final"] != DBNull.Value)
+                                    {
+                                        cajaActual.SaldoFinal =
+                                            Convert.ToDecimal(
+                                                reader["saldo_final"]);
+                                    }
+                                    else
+                                    {
+                                        cajaActual.SaldoFinal = 0;
+                                    }
 
-                            cajaActual.EstadoCaja =
-                                reader["estado_caja"].ToString();
+                                    cajaActual.TipoCambioDolar =
+                                        Convert.ToDecimal(
+                                            reader["tipo_cambio_dolar"]);
 
-                            cajaActual.IdUsuario =
-                                Convert.ToInt32(reader["id_usuario"]);
-                        }
-                        else
-                        {
-                            cajaActual = null;
+                                    cajaActual.EstadoCaja =
+                                        reader["estado_caja"].ToString();
+
+                                    cajaActual.IdUsuario =
+                                        Convert.ToInt32(
+                                            reader["id_usuario"]);
+                                }
+                            }
                         }
                     }
                 }
 
-                conexionBD.CerrarConexion();
+                // =====================================================
+                // 3. NO EXISTE NINGUNA CAJA
+                // =====================================================
 
                 if (cajaActual == null)
                 {
-                    MessageBox.Show(
-                        "No hay una caja abierta para el usuario actual.",
-                        "Caja",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
-
                     LimpiarCaja();
+                    CargarMovimientos();
                     return;
                 }
 
+                // =====================================================
+                // 4. MOSTRAR LOS DATOS DE LA CAJA
+                // =====================================================
+
                 CargarDatosEnFormulario();
+
+                // =====================================================
+                // 5. MOSTRAR MOVIMIENTOS
+                // =====================================================
+
                 CargarMovimientos();
             }
             catch (Exception ex)
             {
-                conexionBD.CerrarConexion();
-
                 MessageBox.Show(
                     "Error al cargar la caja:\n\n" + ex.Message,
                     "Error",
@@ -255,57 +366,66 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
             {
                 dgvMovimientosCierre.Rows.Clear();
 
-                using (NpgsqlConnection conexion =
-                    new ConexionBD().ObtenerConexion())
+                string sql = @"
+            SELECT
+                id_caja,
+                fecha_cierre,
+                saldo_final,
+                id_usuario
+            FROM caja
+            WHERE estado_caja = 'Cerrada'
+            ORDER BY id_caja DESC;
+        ";
+
+                if (!conexionBD.AbrirConexion())
+                    return;
+
+                using (NpgsqlCommand cmd =
+                    new NpgsqlCommand(
+                        sql,
+                        conexionBD.ObtenerConexion()))
                 {
-                    conexion.Open();
-
-                    string sql = @"
-                SELECT
-                    c.id_caja,
-                    c.fecha_cierre,
-                    c.saldo_final,
-                    u.nombre
-                FROM caja c
-                INNER JOIN usuario u
-                    ON c.id_usuario = u.id_usuario
-                WHERE c.estado_caja = 'Cerrada'
-                ORDER BY c.id_caja DESC;
-            ";
-
-                    using (NpgsqlCommand comando =
-                        new NpgsqlCommand(sql, conexion))
+                    using (NpgsqlDataReader reader =
+                        cmd.ExecuteReader())
                     {
-                        using (NpgsqlDataReader reader =
-                            comando.ExecuteReader())
+                        while (reader.Read())
                         {
-                            while (reader.Read())
-                            {
-                                int idCierre =
-                                    Convert.ToInt32(reader["id_caja"]);
+                            int idCaja =
+                                Convert.ToInt32(
+                                    reader["id_caja"]);
 
-                                DateTime fechaCierre =
-                                    Convert.ToDateTime(reader["fecha_cierre"]);
+                            string fecha =
+                                reader["fecha_cierre"] == DBNull.Value
+                                ? ""
+                                : Convert.ToDateTime(
+                                    reader["fecha_cierre"])
+                                    .ToString("dd/MM/yyyy HH:mm");
 
-                                decimal monto =
-                                    Convert.ToDecimal(reader["saldo_final"]);
+                            decimal monto =
+                                reader["saldo_final"] == DBNull.Value
+                                ? 0
+                                : Convert.ToDecimal(
+                                    reader["saldo_final"]);
 
-                                string usuario =
-                                    reader["nombre"].ToString();
+                            int idUsuario =
+                                Convert.ToInt32(
+                                    reader["id_usuario"]);
 
-                                dgvMovimientosCierre.Rows.Add(
-                                    idCierre,
-                                    fechaCierre.ToString("dd/MM/yyyy HH:mm"),
-                                    "C$ " + monto.ToString("N2"),
-                                    usuario
-                                );
-                            }
+                            dgvMovimientosCierre.Rows.Add(
+                                idCaja,
+                                fecha,
+                                "C$ " + monto.ToString("N2"),
+                                idUsuario);
                         }
                     }
                 }
+
+                conexionBD.CerrarConexion();
             }
             catch (Exception ex)
             {
+                conexionBD.CerrarConexion();
+
                 MessageBox.Show(
                     "Error al cargar los cierres de caja:\n\n" +
                     ex.Message,
@@ -569,19 +689,27 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
             if (cajaActual == null)
             {
                 MessageBox.Show(
-                    "No existe una caja abierta.",
-                    "Caja",
+                    "No hay una caja disponible.",
+                    "Arqueo de Caja",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
 
                 return;
             }
 
-            ArqueodeCaja ventana =
-                new ArqueodeCaja();
+            if (cajaActual.EstadoCaja == "Cerrada")
+            {
+                MessageBox.Show(
+                    "La caja ya está cerrada.",
+                    "Arqueo de Caja",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
 
+                return;
+            }
+
+            ArqueodeCaja ventana = new ArqueodeCaja();
             ventana.Show();
-
             this.Hide();
         }
 
@@ -590,19 +718,27 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
             if (cajaActual == null)
             {
                 MessageBox.Show(
-                    "No existe una caja abierta.",
-                    "Caja",
+                    "No hay una caja disponible.",
+                    "Cierre de Caja",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
 
                 return;
             }
 
-            CierredeCaja ventana =
-                new CierredeCaja();
+            if (cajaActual.EstadoCaja == "Cerrada")
+            {
+                MessageBox.Show(
+                    "La caja ya está cerrada.",
+                    "Cierre de Caja",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
 
+                return;
+            }
+
+            CierredeCaja ventana = new CierredeCaja();
             ventana.Show();
-
             this.Hide();
         }
 
@@ -632,16 +768,22 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                 {
                     conexion.Open();
 
-                    string sql = @"
+                    // ==========================================
+                    // 1. CARGAR EGRESOS
+                    // ==========================================
+
+                    string sqlEgresos = @"
                 SELECT descripcion, monto, fecha
                 FROM egreso_caja
                 WHERE id_caja = @id_caja
                 ORDER BY fecha ASC";
 
                     using (Npgsql.NpgsqlCommand comando =
-                        new Npgsql.NpgsqlCommand(sql, conexion))
+                        new Npgsql.NpgsqlCommand(sqlEgresos, conexion))
                     {
-                        comando.Parameters.AddWithValue("@id_caja", cajaActual.IdCaja);
+                        comando.Parameters.AddWithValue(
+                            "@id_caja",
+                            cajaActual.IdCaja);
 
                         using (Npgsql.NpgsqlDataReader reader =
                             comando.ExecuteReader())
@@ -665,6 +807,46 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
                             }
                         }
                     }
+
+                    // ==========================================
+                    // 2. CARGAR CIERRE DE CAJA
+                    // ==========================================
+
+                    if (cajaActual.EstadoCaja == "Cerrada")
+                    {
+                        string sqlCierre = @"
+                    SELECT fecha_cierre, saldo_final
+                    FROM caja
+                    WHERE id_caja = @id_caja
+                    AND estado_caja = 'Cerrada'";
+
+                        using (Npgsql.NpgsqlCommand comandoCierre =
+                            new Npgsql.NpgsqlCommand(sqlCierre, conexion))
+                        {
+                            comandoCierre.Parameters.AddWithValue(
+                                "@id_caja",
+                                cajaActual.IdCaja);
+
+                            using (Npgsql.NpgsqlDataReader readerCierre =
+                                comandoCierre.ExecuteReader())
+                            {
+                                if (readerCierre.Read())
+                                {
+                                    DateTime fechaCierre =
+                                        Convert.ToDateTime(readerCierre["fecha_cierre"]);
+
+                                    decimal saldoFinal =
+                                        Convert.ToDecimal(readerCierre["saldo_final"]);
+
+                                    dataGridView1.Rows.Add(
+                                        "Cierre de caja",
+                                        "C$ " + saldoFinal.ToString("N2"),
+                                        fechaCierre.ToString("dd/MM/yyyy HH:mm:ss")
+                                    );
+                                }
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -679,99 +861,120 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
 
         private void btnGuardarMovimiento_Click(object sender, EventArgs e)
         {
+            if (cajaActual == null)
+            {
+                MessageBox.Show(
+                    "No existe una caja abierta.",
+                    "Caja",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                return;
+            }
+
+            // =====================================================
+            // CONCEPTO
+            // =====================================================
+
+            string concepto =
+                textBox4.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(concepto))
+            {
+                MessageBox.Show(
+                    "Ingrese el concepto del movimiento.",
+                    "Validación",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
+                textBox4.Focus();
+
+                return;
+            }
+
+            // =====================================================
+            // MONTO
+            // =====================================================
+
+            decimal monto =
+                cajaActual.SaldoInicial;
+
+            // =====================================================
+            // GUARDAR EN EGRESO_CAJA
+            // =====================================================
+
             try
             {
-                if (cajaActual == null)
+                string sql = @"
+            INSERT INTO egreso_caja
+            (
+                descripcion,
+                monto,
+                fecha,
+                id_caja
+            )
+            VALUES
+            (
+                @descripcion,
+                @monto,
+                CURRENT_TIMESTAMP,
+                @id_caja
+            );
+        ";
+
+                if (!conexionBD.AbrirConexion())
                 {
-                    MessageBox.Show("No hay una caja abierta.",
-                        "Aviso",
+                    MessageBox.Show(
+                        "No se pudo conectar con la base de datos.",
+                        "Error",
                         MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
-                    return;
-                }
-
-                // textBox4 = Concepto
-                // textBox5 = Monto automático de apertura
-
-                string concepto = textBox4.Text.Trim();
-
-                if (string.IsNullOrWhiteSpace(concepto))
-                {
-                    MessageBox.Show("Ingrese el concepto del movimiento.",
-                        "Aviso",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
-
-                    textBox4.Focus();
-                    return;
-                }
-
-                // El monto se toma automáticamente de la apertura de caja
-                decimal monto = cajaActual.SaldoInicial;
-
-                if (monto <= 0)
-                {
-                    MessageBox.Show("El monto de apertura de caja no es válido.",
-                        "Aviso",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
+                        MessageBoxIcon.Error);
 
                     return;
                 }
 
-                using (Npgsql.NpgsqlConnection conexion =
-                    new ConexionBD().ObtenerConexion())
+                using (NpgsqlCommand cmd =
+                    new NpgsqlCommand(
+                        sql,
+                        conexionBD.ObtenerConexion()))
                 {
-                    conexion.Open();
+                    cmd.Parameters.AddWithValue(
+                        "@descripcion",
+                        concepto);
 
-                    string sql = @"
-        INSERT INTO egreso_caja
-        (id_caja, descripcion, monto, fecha)
-        VALUES
-        (@id_caja, @descripcion, @monto, @fecha)";
+                    cmd.Parameters.AddWithValue(
+                        "@monto",
+                        monto);
 
-                    using (Npgsql.NpgsqlCommand comando =
-                        new Npgsql.NpgsqlCommand(sql, conexion))
-                    {
-                        comando.Parameters.AddWithValue(
-                            "@id_caja",
-                            cajaActual.IdCaja);
+                    cmd.Parameters.AddWithValue(
+                        "@id_caja",
+                        cajaActual.IdCaja);
 
-                        comando.Parameters.AddWithValue(
-                            "@descripcion",
-                            concepto);
-
-                        comando.Parameters.AddWithValue(
-                            "@monto",
-                            monto);
-
-                        comando.Parameters.AddWithValue(
-                            "@fecha",
-                            DateTime.Now);
-
-                        comando.ExecuteNonQuery();
-                    }
+                    cmd.ExecuteNonQuery();
                 }
 
-                MessageBox.Show("Movimiento guardado correctamente.",
-                    "Éxito",
+                conexionBD.CerrarConexion();
+
+                MessageBox.Show(
+                    "Movimiento guardado correctamente.",
+                    "Caja",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
 
-                // Limpiar solamente el concepto
                 textBox4.Clear();
 
-                // El monto vuelve a mostrar el monto de apertura
-                textBox5.Text = cajaActual.SaldoInicial.ToString("N2");
+                textBox5.Text =
+                    cajaActual.SaldoInicial.ToString("N2");
 
-                // Actualizar caja y DataGridView
                 CargarCaja();
-                CargarMovimientos();
             }
             catch (Exception ex)
             {
+                conexionBD.CerrarConexion();
+
                 MessageBox.Show(
-                    "Error al guardar el movimiento:\n\n" + ex.Message,
+                    "Error al guardar el movimiento:\n\n" +
+                    ex.Message,
                     "Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
