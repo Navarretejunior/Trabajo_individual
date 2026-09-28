@@ -160,7 +160,7 @@
             this.txtUsuario.BackColor = System.Drawing.Color.White;
             this.txtUsuario.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtUsuario.ForeColor = System.Drawing.Color.Black;
-            this.txtUsuario.Location = new System.Drawing.Point(319, 145);
+            this.txtUsuario.Location = new System.Drawing.Point(314, 132);
             this.txtUsuario.Multiline = true;
             this.txtUsuario.Name = "txtUsuario";
             this.txtUsuario.Size = new System.Drawing.Size(350, 34);
@@ -182,7 +182,7 @@
             this.Descripción,
             this.Column1});
             this.dataGridView1.EnableHeadersVisualStyles = false;
-            this.dataGridView1.Location = new System.Drawing.Point(243, 204);
+            this.dataGridView1.Location = new System.Drawing.Point(246, 184);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.RowHeadersWidth = 62;
             this.dataGridView1.RowTemplate.Height = 28;
@@ -215,7 +215,7 @@
             this.label6.AutoSize = true;
             this.label6.Font = new System.Drawing.Font("Times New Roman", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label6.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(106)))), ((int)(((byte)(0)))));
-            this.label6.Location = new System.Drawing.Point(260, 79);
+            this.label6.Location = new System.Drawing.Point(255, 66);
             this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(175, 35);
@@ -234,9 +234,9 @@
             this.groupBox2.Controls.Add(this.lblSaldoinicial);
             this.groupBox2.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(106)))), ((int)(((byte)(0)))));
-            this.groupBox2.Location = new System.Drawing.Point(243, 478);
+            this.groupBox2.Location = new System.Drawing.Point(257, 713);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(672, 107);
+            this.groupBox2.Size = new System.Drawing.Size(672, 88);
             this.groupBox2.TabIndex = 119;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Resumen de Caja";
@@ -341,7 +341,7 @@
             this.groupBox5.Controls.Add(this.textBox4);
             this.groupBox5.Controls.Add(this.label11);
             this.groupBox5.Controls.Add(this.label10);
-            this.groupBox5.Location = new System.Drawing.Point(732, 204);
+            this.groupBox5.Location = new System.Drawing.Point(257, 439);
             this.groupBox5.Name = "groupBox5";
             this.groupBox5.Size = new System.Drawing.Size(420, 268);
             this.groupBox5.TabIndex = 120;
@@ -448,7 +448,7 @@
             this.label2.BackColor = System.Drawing.Color.Transparent;
             this.label2.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.ForeColor = System.Drawing.Color.Black;
-            this.label2.Location = new System.Drawing.Point(247, 152);
+            this.label2.Location = new System.Drawing.Point(242, 139);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(82, 23);
             this.label2.TabIndex = 73;
@@ -460,7 +460,7 @@
             this.label5.BackColor = System.Drawing.Color.Transparent;
             this.label5.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label5.ForeColor = System.Drawing.Color.Black;
-            this.label5.Location = new System.Drawing.Point(728, 152);
+            this.label5.Location = new System.Drawing.Point(723, 139);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(67, 23);
             this.label5.TabIndex = 121;
@@ -684,7 +684,7 @@
             this.dtpFecha.CalendarFont = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dtpFecha.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dtpFecha.Format = System.Windows.Forms.DateTimePickerFormat.Short;
-            this.dtpFecha.Location = new System.Drawing.Point(805, 146);
+            this.dtpFecha.Location = new System.Drawing.Point(800, 133);
             this.dtpFecha.Name = "dtpFecha";
             this.dtpFecha.Size = new System.Drawing.Size(173, 30);
             this.dtpFecha.TabIndex = 124;
@@ -696,7 +696,7 @@
             this.groupBox6.Controls.Add(this.btnAperturadecaja);
             this.groupBox6.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.groupBox6.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(106)))), ((int)(((byte)(0)))));
-            this.groupBox6.Location = new System.Drawing.Point(936, 492);
+            this.groupBox6.Location = new System.Drawing.Point(793, 459);
             this.groupBox6.Name = "groupBox6";
             this.groupBox6.Size = new System.Drawing.Size(367, 223);
             this.groupBox6.TabIndex = 125;
@@ -751,7 +751,7 @@
             this.label7.BackColor = System.Drawing.Color.Transparent;
             this.label7.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label7.ForeColor = System.Drawing.Color.Black;
-            this.label7.Location = new System.Drawing.Point(1027, 152);
+            this.label7.Location = new System.Drawing.Point(1022, 139);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(60, 23);
             this.label7.TabIndex = 126;
@@ -762,7 +762,7 @@
             this.dtpHora.CalendarFont = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dtpHora.Font = new System.Drawing.Font("Times New Roman", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dtpHora.Format = System.Windows.Forms.DateTimePickerFormat.Time;
-            this.dtpHora.Location = new System.Drawing.Point(1104, 146);
+            this.dtpHora.Location = new System.Drawing.Point(1099, 133);
             this.dtpHora.Name = "dtpHora";
             this.dtpHora.Size = new System.Drawing.Size(173, 30);
             this.dtpHora.TabIndex = 127;
@@ -783,7 +783,7 @@
             this.Column3,
             this.Column4,
             this.Column5});
-            this.dgvMovimientosCierre.Location = new System.Drawing.Point(1188, 226);
+            this.dgvMovimientosCierre.Location = new System.Drawing.Point(793, 210);
             this.dgvMovimientosCierre.Name = "dgvMovimientosCierre";
             this.dgvMovimientosCierre.RowHeadersWidth = 62;
             this.dgvMovimientosCierre.Size = new System.Drawing.Size(440, 228);
@@ -823,7 +823,7 @@
             this.label24.BackColor = System.Drawing.Color.Transparent;
             this.label24.Font = new System.Drawing.Font("Times New Roman", 15F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label24.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(106)))), ((int)(((byte)(0)))));
-            this.label24.Location = new System.Drawing.Point(1199, 200);
+            this.label24.Location = new System.Drawing.Point(804, 184);
             this.label24.Name = "label24";
             this.label24.Size = new System.Drawing.Size(264, 29);
             this.label24.TabIndex = 129;
@@ -850,7 +850,7 @@
             this.groupBox1.ForeColor = System.Drawing.Color.Black;
             this.groupBox1.Location = new System.Drawing.Point(-21, 27);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(1641, 721);
+            this.groupBox1.Size = new System.Drawing.Size(1586, 807);
             this.groupBox1.TabIndex = 81;
             this.groupBox1.TabStop = false;
             this.groupBox1.Enter += new System.EventHandler(this.groupBox1_Enter);
@@ -860,7 +860,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(1640, 761);
+            this.ClientSize = new System.Drawing.Size(1584, 870);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox1);
             this.Font = new System.Drawing.Font("Times New Roman", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));

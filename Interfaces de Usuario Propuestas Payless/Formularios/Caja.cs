@@ -78,6 +78,7 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
             // =====================================================
 
             CargarCaja();
+            CargarCierresCaja();
         }
 
         private void CargarCaja()
@@ -246,6 +247,72 @@ namespace Interfaces_de_Usuario_Propuestas_Payless
             // Monto del movimiento tomado de la apertura de caja
             textBox5.Text =
                 cajaActual.SaldoInicial.ToString("N2");
+        }
+
+        private void CargarCierresCaja()
+        {
+            try
+            {
+                dgvMovimientosCierre.Rows.Clear();
+
+                using (NpgsqlConnection conexion =
+                    new ConexionBD().ObtenerConexion())
+                {
+                    conexion.Open();
+
+                    string sql = @"
+                SELECT
+                    c.id_caja,
+                    c.fecha_cierre,
+                    c.saldo_final,
+                    u.nombre
+                FROM caja c
+                INNER JOIN usuario u
+                    ON c.id_usuario = u.id_usuario
+                WHERE c.estado_caja = 'Cerrada'
+                ORDER BY c.id_caja DESC;
+            ";
+
+                    using (NpgsqlCommand comando =
+                        new NpgsqlCommand(sql, conexion))
+                    {
+                        using (NpgsqlDataReader reader =
+                            comando.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                int idCierre =
+                                    Convert.ToInt32(reader["id_caja"]);
+
+                                DateTime fechaCierre =
+                                    Convert.ToDateTime(reader["fecha_cierre"]);
+
+                                decimal monto =
+                                    Convert.ToDecimal(reader["saldo_final"]);
+
+                                string usuario =
+                                    reader["nombre"].ToString();
+
+                                dgvMovimientosCierre.Rows.Add(
+                                    idCierre,
+                                    fechaCierre.ToString("dd/MM/yyyy HH:mm"),
+                                    "C$ " + monto.ToString("N2"),
+                                    usuario
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Error al cargar los cierres de caja:\n\n" +
+                    ex.Message,
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         }
 
         private List<TextBox> ObtenerTextBox(Control control)
